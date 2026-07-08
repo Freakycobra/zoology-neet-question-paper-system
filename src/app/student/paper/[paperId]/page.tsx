@@ -9,18 +9,14 @@ import TestTimer from '@/components/student/TestTimer'
 import { NEETQuestion } from '@/types'
 import { mockQuestions } from '@/lib/mock-data'
 
-export default function TakeTestPage({ params }: { params: Promise<{ paperId: string }> }) {
+export default function TakeTestPage({ params }: { params: { paperId: string } }) {
   const router = useRouter()
-  const [paperId, setPaperId] = useState<string>('')
+  const paperId = params.paperId
   const [questions, setQuestions] = useState<NEETQuestion[]>(mockQuestions)
   const [currentQ, setCurrentQ] = useState(0)
   const [answers, setAnswers] = useState<Record<number, number>>({})
   const [showSubmit, setShowSubmit] = useState(false)
   const [timeUp, setTimeUp] = useState(false)
-
-  useEffect(() => {
-    params.then(p => setPaperId(p.paperId))
-  }, [params])
 
   const handleAnswer = useCallback((option: number) => {
     setAnswers(prev => ({ ...prev, [currentQ]: option }))

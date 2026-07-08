@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, use } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Check, Download, Loader2 } from 'lucide-react'
@@ -9,9 +9,9 @@ import QuestionCard from '@/components/teacher/QuestionCard'
 import { getUser, isTeacher } from '@/lib/auth'
 import { Question } from '@/types'
 
-export default function ReviewPage({ params }: { params: Promise<{ paperId: string }> }) {
+export default function ReviewPage({ params }: { params: { paperId: string } }) {
   const router = useRouter()
-  const { paperId } = use(params)
+  const paperId = params.paperId
   const [questions, setQuestions] = useState<Question[]>([])
   const [currentIdx, setCurrentIdx] = useState(0)
   const [exporting, setExporting] = useState(false)

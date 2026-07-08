@@ -6,7 +6,9 @@ import { ArrowLeft, ChevronDown, ChevronUp, Check, X, Minus } from 'lucide-react
 import ScoreCard from '@/components/student/ScoreCard'
 import { mockQuestions, mockPaperResult } from '@/lib/mock-data'
 
-export default function ResultPage({ params }: { params: Promise<{ paperId: string }> }) {
+export default function ResultPage({ params }: { params: { paperId: string } }) {
+  const paperId = params.paperId
+  void paperId
   const result = mockPaperResult
   const [expandedQuestion, setExpandedQuestion] = useState<number | null>(null)
 
