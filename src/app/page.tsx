@@ -32,24 +32,33 @@ export default function LandingPage() {
       </nav>
 
       {/* Hero */}
-      <section className={`py-20 sm:py-28 px-4 transition-all duration-700 ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-        <div className="max-w-4xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-teal-50 text-teal-700 text-sm font-medium mb-6">
+      <section className={`relative py-20 sm:py-28 px-4 transition-all duration-700 overflow-hidden ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+        {/* Subtle background decoration */}
+        <div className="absolute inset-0 -z-10 bg-gradient-to-br from-teal-50/50 via-white to-emerald-50/30" />
+        <div className="absolute top-20 right-10 w-72 h-72 bg-teal-100/20 rounded-full blur-3xl" />
+        <div className="absolute bottom-20 left-10 w-96 h-96 bg-emerald-100/20 rounded-full blur-3xl" />
+
+        <div className="max-w-4xl mx-auto text-center relative">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 backdrop-blur-sm border border-teal-200 text-teal-700 text-sm font-medium mb-6 shadow-sm">
             <Dna size={14} /> For Telangana Zoology & NEET Coaching
           </div>
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-slate-900 leading-tight mb-6">
             AI-Powered Question Papers<br />for <span className="text-teal-600">NEET Zoology</span>
           </h1>
-          <p className="text-lg sm:text-xl text-slate-600 mb-10 max-w-2xl mx-auto leading-relaxed">
-            Generate syllabus-aligned, NEET-standard weekly test papers in minutes. 
-            Quality-controlled MCQs with proper answer keys and explanations.
+          <p className="text-lg sm:text-xl text-slate-600 mb-6 max-w-2xl mx-auto leading-relaxed">
+            Generate flexible, NEET-standard test papers in minutes. 
+            Choose your topics, set question count (10-50), and control difficulty mix. 
+            Quality MCQs with proper answer keys and explanations.
           </p>
+          <div className="flex flex-wrap gap-2 justify-center mb-10">
+            <span className="px-3 py-1 rounded-full bg-white/80 backdrop-blur-sm border border-slate-200 text-xs text-slate-600">10-50 Questions</span>
+            <span className="px-3 py-1 rounded-full bg-white/80 backdrop-blur-sm border border-slate-200 text-xs text-slate-600">Adjustable Difficulty</span>
+            <span className="px-3 py-1 rounded-full bg-white/80 backdrop-blur-sm border border-slate-200 text-xs text-slate-600">NEET Pattern</span>
+            <span className="px-3 py-1 rounded-full bg-white/80 backdrop-blur-sm border border-slate-200 text-xs text-slate-600">Word Export</span>
+          </div>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Link href="/login" className="inline-flex items-center justify-center gap-2 bg-teal-600 text-white px-6 py-3 rounded-xl hover:bg-teal-700 transition-colors font-semibold text-base">
+            <Link href="/login" className="inline-flex items-center justify-center gap-2 bg-teal-600 text-white px-6 py-3 rounded-xl hover:bg-teal-700 transition-colors font-semibold text-base shadow-lg shadow-teal-600/20">
               <Brain size={18} /> Teacher Login
-            </Link>
-            <Link href="/login" className="inline-flex items-center justify-center gap-2 bg-white text-slate-700 border border-slate-200 px-6 py-3 rounded-xl hover:bg-slate-50 transition-colors font-semibold text-base">
-              Student Login
             </Link>
           </div>
         </div>
@@ -61,7 +70,7 @@ export default function LandingPage() {
           <h2 className="text-2xl sm:text-3xl font-bold text-center text-slate-900 mb-12">Built for NEET Coaching Excellence</h2>
           <div className="grid sm:grid-cols-3 gap-6">
             {features.map((f, i) => (
-              <div key={i} className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+              <div key={i} className="bg-white/70 backdrop-blur-sm rounded-xl p-6 border border-white/50 shadow-sm hover:shadow-lg hover:bg-white/90 transition-all">
                 <div className="w-10 h-10 rounded-lg bg-teal-50 text-teal-600 flex items-center justify-center mb-4">
                   {i === 0 ? <Brain size={20} /> : i === 1 ? <FileCheck size={20} /> : <Download size={20} />}
                 </div>
@@ -80,7 +89,7 @@ export default function LandingPage() {
           <div className="grid sm:grid-cols-4 gap-6">
             {howItWorks.map((step, i) => (
               <div key={i} className="text-center relative">
-                <div className="w-12 h-12 rounded-full bg-teal-600 text-white flex items-center justify-center text-lg font-bold mx-auto mb-4">
+                <div className="w-12 h-12 rounded-full bg-teal-600 text-white flex items-center justify-center text-lg font-bold mx-auto mb-4 shadow-lg shadow-teal-600/20">
                   {step.step}
                 </div>
                 <h3 className="font-semibold text-slate-900 mb-2">{step.title}</h3>
@@ -99,7 +108,7 @@ export default function LandingPage() {
         <div className="max-w-5xl mx-auto">
           <h2 className="text-2xl sm:text-3xl font-bold text-center text-slate-900 mb-12">Complete Zoology Syllabus Coverage</h2>
           <div className="grid sm:grid-cols-2 gap-8">
-            <div className="bg-white rounded-xl p-6 border border-slate-200">
+            <div className="bg-white/70 backdrop-blur-sm rounded-xl p-6 border border-white/50 shadow-sm">
               <h3 className="font-semibold text-slate-900 mb-4 text-lg">Class 11</h3>
               <div className="space-y-2">
                 {class11.map(ch => (
@@ -109,7 +118,7 @@ export default function LandingPage() {
                 ))}
               </div>
             </div>
-            <div className="bg-white rounded-xl p-6 border border-slate-200">
+            <div className="bg-white/70 backdrop-blur-sm rounded-xl p-6 border border-white/50 shadow-sm">
               <h3 className="font-semibold text-slate-900 mb-4 text-lg">Class 12</h3>
               <div className="space-y-2">
                 {class12.map(ch => (

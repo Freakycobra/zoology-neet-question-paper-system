@@ -91,7 +91,7 @@ export default function GeneratePage() {
           ))}
         </div>
 
-        <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+        <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-slate-200/80 p-6 shadow-sm">
           {step === 1 && (
             <div className="space-y-6">
               <h2 className="text-lg font-semibold text-slate-900">Select Class</h2>

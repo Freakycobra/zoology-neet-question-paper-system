@@ -116,7 +116,7 @@ export default function ReviewPage({ params }: { params: { paperId: string } }) 
         <div className="grid lg:grid-cols-4 gap-6">
           {/* Question List Sidebar */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-3 max-h-[70vh] overflow-y-auto">
+            <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-slate-200/80 shadow-sm p-3 max-h-[70vh] overflow-y-auto">
               <div className="grid grid-cols-5 gap-1.5">
                 {questions.map((q, i) => (
                   <button
@@ -140,7 +140,7 @@ export default function ReviewPage({ params }: { params: { paperId: string } }) 
           <div className="lg:col-span-3">
             {questions[currentIdx] && (
               <div className="space-y-4">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between p-3 bg-white/60 backdrop-blur-sm rounded-lg border border-slate-200/60">
                   <p className="text-sm text-slate-500">Question {currentIdx + 1} of {questions.length}</p>
                   <div className="flex items-center gap-2">
                     <button onClick={() => setCurrentIdx(Math.max(0, currentIdx - 1))}

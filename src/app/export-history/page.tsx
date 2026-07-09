@@ -59,7 +59,7 @@ export default function ExportHistoryPage() {
           <p className="text-slate-500 mt-1">Download previously generated papers</p>
         </div>
 
-        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-slate-200/80 shadow-sm overflow-hidden">
           <div className="px-6 py-4 border-b border-slate-100">
             <span className="font-semibold text-slate-900">Recent Exports</span>
           </div>

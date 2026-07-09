@@ -23,12 +23,50 @@
 }
 
 @layer utilities {
+  /* Glassmorphism card */
+  .glass {
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+  }
+
+  .glass-strong {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+  }
+
+  /* Subtle gradient backgrounds */
+  .bg-gradient-soft {
+    background: linear-gradient(135deg, #f0fdfa 0%, #f8fafc 50%, #ecfdf5 100%);
+  }
+
+  /* Hover lift effect */
+  .hover-lift {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .hover-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px -5px rgba(0, 0, 0, 0.08);
+  }
+
+  /* Animated entrance */
   .animate-fadeInUp {
     animation: fadeInUp 0.5s ease-out;
   }
   @keyframes fadeInUp {
     from { opacity: 0; transform: translateY(12px); }
     to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Glow effect for primary actions */
+  .glow-teal {
+    box-shadow: 0 4px 20px -5px rgba(13, 148, 136, 0.3);
+  }
+  .glow-teal:hover {
+    box-shadow: 0 8px 30px -5px rgba(13, 148, 136, 0.4);
   }
 }
 

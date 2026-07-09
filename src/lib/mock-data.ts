@@ -47,7 +47,7 @@ export const features = [
 
 export const howItWorks = [
   { step: 1, title: 'Select Topics', desc: 'Choose weekly Zoology topics from the NEET syllabus' },
-  { step: 2, title: 'AI Generates', desc: 'Our RAG engine creates 25 NEET-standard MCQs' },
+  { step: 2, title: 'AI Generates', desc: 'Our engine creates NEET-standard MCQs — flexible count (10-50), adjustable difficulty' },
   { step: 3, title: 'Review & Approve', desc: 'Review each question, edit if needed, approve or reject' },
   { step: 4, title: 'Export & Print', desc: 'Download Word documents for students and teachers' },
 ]
