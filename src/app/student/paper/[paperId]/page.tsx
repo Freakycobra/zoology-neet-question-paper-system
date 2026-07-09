@@ -6,36 +6,87 @@ import Link from 'next/link'
 import { ArrowLeft, ArrowRight, AlertCircle, Send } from 'lucide-react'
 import QuestionDisplay from '@/components/student/QuestionDisplay'
 import TestTimer from '@/components/student/TestTimer'
-import { NEETQuestion } from '@/types'
-import { mockQuestions } from '@/lib/mock-data'
+import { Question } from '@/types'
 
 export default function TakeTestPage({ params }: { params: { paperId: string } }) {
   const router = useRouter()
   const paperId = params.paperId
-  const [questions, setQuestions] = useState<NEETQuestion[]>(mockQuestions)
+  const [questions, setQuestions] = useState<Question[]>([])
   const [currentQ, setCurrentQ] = useState(0)
   const [answers, setAnswers] = useState<Record<number, number>>({})
   const [showSubmit, setShowSubmit] = useState(false)
-  const [timeUp, setTimeUp] = useState(false)
+  const [notFound, setNotFound] = useState(false)
+
+  useEffect(() => {
+    // Load questions from sessionStorage or localStorage
+    const stored = sessionStorage.getItem(`paper-${paperId}`) || localStorage.getItem(`paper-${paperId}`)
+    if (stored) {
+      try {
+        const qs = JSON.parse(stored) as Question[]
+        // Only use approved questions for the test
+        const approved = qs.filter((q: Question) => q.status === 'approved')
+        setQuestions(approved.length > 0 ? approved : qs)
+      } catch {
+        setNotFound(true)
+      }
+    } else {
+      setNotFound(true)
+    }
+  }, [paperId])
 
   const handleAnswer = useCallback((option: number) => {
     setAnswers(prev => ({ ...prev, [currentQ]: option }))
   }, [currentQ])
 
   const handleTimeUp = useCallback(() => {
-    setTimeUp(true)
     handleSubmit()
   }, [])
 
   const handleSubmit = () => {
     const result = {
-      paperId, questions, answers,
-      correct: questions.filter((q, i) => answers[i] === q.correctAnswer).length,
-      incorrect: questions.filter((q, i) => answers[i] !== undefined && answers[i] !== q.correctAnswer).length,
+      paperId,
+      paperTitle: `Test Paper ${paperId.slice(0, 8)}`,
+      questions,
+      answers,
+      totalQuestions: questions.length,
+      correctAnswers: questions.filter((q, i) => answers[i] === q.correctAnswer).length,
+      incorrectAnswers: questions.filter((q, i) => answers[i] !== undefined && answers[i] !== q.correctAnswer).length,
       unanswered: questions.filter((_, i) => answers[i] === undefined).length,
+      neetScore: questions.filter((q, i) => answers[i] === q.correctAnswer).length * 4
+        - questions.filter((q, i) => answers[i] !== undefined && answers[i] !== q.correctAnswer).length * 1,
+      percentage: questions.length > 0
+        ? Math.round((questions.filter((q, i) => answers[i] === q.correctAnswer).length / questions.length) * 100)
+        : 0,
     }
     localStorage.setItem(`result-${paperId}`, JSON.stringify(result))
+
+    // Add to completed papers
+    const completed = JSON.parse(localStorage.getItem('completed-papers') || '[]')
+    completed.push({ paperId, paperTitle: result.paperTitle, score: result.percentage, date: new Date().toLocaleDateString() })
+    localStorage.setItem('completed-papers', JSON.stringify(completed))
+
     router.push(`/student/result/${paperId}`)
+  }
+
+  if (notFound) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="text-center">
+          <AlertCircle className="mx-auto text-slate-300 mb-4" size={48} />
+          <h2 className="text-xl font-bold text-slate-900 mb-2">Paper Not Found</h2>
+          <p className="text-slate-500 mb-4">This test paper is not available.</p>
+          <Link href="/student" className="text-teal-600 hover:underline">Back to My Tests</Link>
+        </div>
+      </div>
+    )
+  }
+
+  if (questions.length === 0) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="animate-pulse text-slate-400">Loading...</div>
+      </div>
+    )
   }
 
   const visited = Object.keys(answers).map(Number)
@@ -43,30 +94,36 @@ export default function TakeTestPage({ params }: { params: { paperId: string } }
 
   return (
     <div className="min-h-screen bg-slate-50">
-      {/* Top Bar */}
       <div className="sticky top-0 z-50 bg-white border-b border-slate-200">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <Link href="/student" className="flex items-center gap-2 text-slate-600 hover:text-slate-900">
             <ArrowLeft size={18} /> <span className="text-sm font-medium">Exit</span>
           </Link>
-          <h1 className="text-sm font-semibold text-slate-900 hidden sm:block">NEET Zoology Weekly Test</h1>
+          <h1 className="text-sm font-semibold text-slate-900 hidden sm:block">NEET Zoology Test</h1>
           <TestTimer duration={45} onTimeUp={handleTimeUp} />
         </div>
       </div>
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6">
         <div className="grid lg:grid-cols-4 gap-6">
-          {/* Question Area */}
           <div className="lg:col-span-3">
             {questions[currentQ] && (
               <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
                 <QuestionDisplay
-                  question={questions[currentQ]}
+                  question={{
+                    id: questions[currentQ].id,
+                    stem: questions[currentQ].stem,
+                    options: questions[currentQ].options,
+                    correctAnswer: questions[currentQ].correctAnswer,
+                    explanation: questions[currentQ].explanation,
+                    chapter: questions[currentQ].chapter,
+                    difficulty: questions[currentQ].difficulty,
+                    subject: 'zoology',
+                  }}
                   selectedOption={answers[currentQ] ?? null}
                   onSelect={handleAnswer}
                   questionNumber={currentQ + 1}
                 />
-
                 <div className="flex items-center justify-between mt-8 pt-6 border-t border-slate-100">
                   <button onClick={() => setCurrentQ(Math.max(0, currentQ - 1))}
                     disabled={currentQ === 0}
@@ -89,7 +146,6 @@ export default function TakeTestPage({ params }: { params: { paperId: string } }
             )}
           </div>
 
-          {/* Question Palette */}
           <div className="lg:col-span-1">
             <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm sticky top-20">
               <h3 className="text-sm font-semibold text-slate-900 mb-3">Question Palette</h3>
@@ -119,7 +175,6 @@ export default function TakeTestPage({ params }: { params: { paperId: string } }
         </div>
       </div>
 
-      {/* Submit Confirmation */}
       {showSubmit && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-xl">

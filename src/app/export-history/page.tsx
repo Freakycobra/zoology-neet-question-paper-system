@@ -5,12 +5,8 @@ import { useRouter } from 'next/navigation'
 import { Download, FileText, Loader2 } from 'lucide-react'
 import Navbar from '@/components/shared/Navbar'
 import { getUser, isTeacher } from '@/lib/auth'
-import { mockQuestions } from '@/lib/mock-data'
-
 const exportHistory = [
-  { id: 'e1', title: 'Weekly Test - Animal Kingdom', type: 'student' as const, date: '2026-07-05' },
-  { id: 'e2', title: 'Weekly Test - Animal Kingdom', type: 'teacher' as const, date: '2026-07-05' },
-  { id: 'e3', title: 'Weekly Test - Human Physiology', type: 'student' as const, date: '2026-07-01' },
+  { id: 'e1', title: 'Weekly Test - Animal Kingdom', type: 'student' as const, date: new Date().toLocaleDateString() },
 ]
 
 export default function ExportHistoryPage() {
@@ -26,11 +22,20 @@ export default function ExportHistoryPage() {
   const handleExport = async (type: 'student' | 'teacher' | 'explanation', title: string) => {
     const key = `${type}-${title}`
     setExporting(key)
+    // Load questions from the most recent paper in sessionStorage
+    let questions: any[] = []
+    for (let i = 0; i < sessionStorage.length; i++) {
+      const k = sessionStorage.key(i)
+      if (k?.startsWith('paper-')) {
+        try { questions = JSON.parse(sessionStorage.getItem(k) || '[]'); break } catch { /* ignore */ }
+      }
+    }
+    if (questions.length === 0) { alert('No questions available. Generate a paper first.'); setExporting(null); return }
     try {
       const res = await fetch('/api/export-docx', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ questions: mockQuestions, type, title }),
+        body: JSON.stringify({ questions, type, title }),
       })
       const blob = await res.blob()
       const url = window.URL.createObjectURL(blob)

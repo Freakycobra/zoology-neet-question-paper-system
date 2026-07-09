@@ -22,20 +22,14 @@ export default function ReviewPage({ params }: { params: { paperId: string } }) 
     if (!user) { router.push('/login'); return }
     if (!isTeacher()) { router.push('/student'); return }
 
-    // Load questions from localStorage (set by generate page) or use mock
-    const stored = localStorage.getItem(`paper-${paperId}`)
+    // CRITICAL FIX: Load questions from sessionStorage (set by generate page)
+    const stored = sessionStorage.getItem(`paper-${paperId}`)
     if (stored) {
       setQuestions(JSON.parse(stored))
     } else {
-      // Fallback: redirect to generate
-      import('@/lib/mock-data').then(m => {
-        const qs = m.mockQuestions.map((q, i) => ({
-          ...q, id: `q-${i}`, status: 'draft' as const, usageCount: 0, lastUsed: null,
-          designNote: `Tests ${q.chapter} concepts.`, createdAt: new Date().toISOString(),
-          classLevel: 11 as 11 | 12, subtopic: q.chapter, neetRelevance: 4,
-        }))
-        setQuestions(qs)
-      })
+      // No questions found — redirect to generate page
+      router.push('/generate')
+      return
     }
     setLoaded(true)
   }, [paperId, router])

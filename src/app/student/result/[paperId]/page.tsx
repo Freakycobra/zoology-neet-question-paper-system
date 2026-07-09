@@ -1,19 +1,50 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, ChevronDown, ChevronUp, Check, X, Minus } from 'lucide-react'
 import ScoreCard from '@/components/student/ScoreCard'
-import { mockQuestions, mockPaperResult } from '@/lib/mock-data'
+import { Question } from '@/types'
+
+interface TestResult {
+  paperId: string
+  paperTitle: string
+  questions: Question[]
+  answers: Record<number, number>
+  totalQuestions: number
+  correctAnswers: number
+  incorrectAnswers: number
+  unanswered: number
+  neetScore: number
+  percentage: number
+}
 
 export default function ResultPage({ params }: { params: { paperId: string } }) {
+  const router = useRouter()
   const paperId = params.paperId
-  void paperId
-  const result = mockPaperResult
+  const [result, setResult] = useState<TestResult | null>(null)
   const [expandedQuestion, setExpandedQuestion] = useState<number | null>(null)
 
-  const questions = mockQuestions.slice(0, result.totalQuestions)
-  const userAnswers: Record<number, number> = { 0: 0, 1: 2, 2: 0, 3: 3, 4: 2, 5: 1, 6: 1, 7: 1, 8: 0, 9: 1 }
+  useEffect(() => {
+    const stored = localStorage.getItem(`result-${paperId}`)
+    if (stored) {
+      try { setResult(JSON.parse(stored)) } catch { router.push('/student') }
+    } else {
+      router.push('/student')
+    }
+  }, [paperId, router])
+
+  if (!result) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="animate-pulse text-slate-400">Loading results...</div>
+      </div>
+    )
+  }
+
+  const questions = result.questions
+  const userAnswers = result.answers
 
   const getOptionStatus = (qIdx: number, optIdx: number) => {
     const correct = questions[qIdx]?.correctAnswer
@@ -22,6 +53,29 @@ export default function ResultPage({ params }: { params: { paperId: string } }) 
     if (optIdx === user && user !== correct) return 'wrong'
     return 'neutral'
   }
+
+  // Build chapter performance from actual data
+  const chapterMap: Record<string, { correct: number; total: number }> = {}
+  questions.forEach((q, i) => {
+    if (!chapterMap[q.chapter]) chapterMap[q.chapter] = { correct: 0, total: 0 }
+    chapterMap[q.chapter].total++
+    if (userAnswers[i] === q.correctAnswer) chapterMap[q.chapter].correct++
+  })
+  const chapterPerformance = Object.entries(chapterMap).map(([chapter, data]) => ({
+    chapter,
+    ...data,
+    percentage: data.total > 0 ? Math.round((data.correct / data.total) * 100) : 0,
+  }))
+
+  // Build difficulty breakdown from actual data
+  const diffBreakdown = { easy: { correct: 0, total: 0 }, medium: { correct: 0, total: 0 }, hard: { correct: 0, total: 0 } }
+  questions.forEach((q, i) => {
+    const d = q.difficulty as 'easy' | 'medium' | 'hard'
+    if (diffBreakdown[d]) {
+      diffBreakdown[d].total++
+      if (userAnswers[i] === q.correctAnswer) diffBreakdown[d].correct++
+    }
+  })
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -42,26 +96,30 @@ export default function ResultPage({ params }: { params: { paperId: string } }) 
           incorrect={result.incorrectAnswers}
           unanswered={result.unanswered}
           total={result.totalQuestions}
-          timeTaken={result.timeTaken}
+          timeTaken={45 * 60}
         />
 
         {/* Chapter Performance */}
         <div className="mt-8 bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
           <h2 className="font-semibold text-slate-900 mb-4">Chapter Performance</h2>
-          <div className="space-y-3">
-            {result.chapterPerformance.map((ch, i) => (
-              <div key={i}>
-                <div className="flex items-center justify-between text-sm mb-1">
-                  <span className="text-slate-700">{ch.chapter}</span>
-                  <span className="font-medium text-slate-900">{ch.correct}/{ch.total} ({ch.percentage}%)</span>
+          {chapterPerformance.length === 0 ? (
+            <p className="text-sm text-slate-500">No chapter data available.</p>
+          ) : (
+            <div className="space-y-3">
+              {chapterPerformance.map((ch, i) => (
+                <div key={i}>
+                  <div className="flex items-center justify-between text-sm mb-1">
+                    <span className="text-slate-700">{ch.chapter}</span>
+                    <span className="font-medium text-slate-900">{ch.correct}/{ch.total} ({ch.percentage}%)</span>
+                  </div>
+                  <div className="w-full bg-slate-100 rounded-full h-2.5">
+                    <div className={`h-2.5 rounded-full ${ch.percentage >= 80 ? 'bg-emerald-500' : ch.percentage >= 60 ? 'bg-amber-500' : 'bg-red-500'}`}
+                      style={{ width: `${ch.percentage}%` }} />
+                  </div>
                 </div>
-                <div className="w-full bg-slate-100 rounded-full h-2.5">
-                  <div className={`h-2.5 rounded-full ${ch.percentage >= 80 ? 'bg-emerald-500' : ch.percentage >= 60 ? 'bg-amber-500' : 'bg-red-500'}`}
-                    style={{ width: `${ch.percentage}%` }} />
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Difficulty Breakdown */}
@@ -70,7 +128,7 @@ export default function ResultPage({ params }: { params: { paperId: string } }) 
           <div className="grid grid-cols-3 gap-4">
             {(['easy', 'medium', 'hard'] as const).map(d => (
               <div key={d} className="text-center p-3 rounded-lg bg-slate-50">
-                <p className="text-lg font-bold text-slate-900">{result.difficultyBreakdown[d].correct}/{result.difficultyBreakdown[d].total}</p>
+                <p className="text-lg font-bold text-slate-900">{diffBreakdown[d].correct}/{diffBreakdown[d].total}</p>
                 <p className="text-xs text-slate-500 capitalize">{d}</p>
               </div>
             ))}

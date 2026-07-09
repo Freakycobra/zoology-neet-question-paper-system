@@ -45,6 +45,9 @@ export default function GeneratePage() {
       })
       const data = await res.json()
       if (data.questions) {
+        // CRITICAL FIX: Save questions to sessionStorage so review page can access them
+        sessionStorage.setItem(`paper-${data.paperId}`, JSON.stringify(data.questions))
+        sessionStorage.setItem(`paper-blueprint-${data.paperId}`, JSON.stringify(data.blueprint))
         setGeneratedQuestions(data.questions)
         setPaperId(data.paperId)
         setStep(4)
