@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Check, Download, Loader2 } from 'lucide-react'
+import { ArrowLeft, Check, Download, Loader2, CheckSquare, Square, X } from 'lucide-react'
 import Navbar from '@/components/shared/Navbar'
 import QuestionCard from '@/components/teacher/QuestionCard'
 import { getUser, isTeacher } from '@/lib/auth'
@@ -16,6 +16,8 @@ export default function ReviewPage({ params }: { params: { paperId: string } }) 
   const [currentIdx, setCurrentIdx] = useState(0)
   const [exporting, setExporting] = useState(false)
   const [loaded, setLoaded] = useState(false)
+  const [bulkMode, setBulkMode] = useState(false)
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     const user = getUser()
@@ -74,6 +76,28 @@ export default function ReviewPage({ params }: { params: { paperId: string } }) 
     setQuestions(prev => prev.map(q => q.status === 'draft' ? { ...q, status: 'approved' as const } : q))
   }
 
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  const selectAll = () => setSelectedIds(new Set(questions.filter(q => q.status === 'draft').map(q => q.id)))
+  const deselectAll = () => setSelectedIds(new Set())
+
+  const bulkApprove = () => {
+    setQuestions(prev => prev.map(q => selectedIds.has(q.id) ? { ...q, status: 'approved' as const } : q))
+    setSelectedIds(new Set())
+  }
+
+  const bulkReject = () => {
+    setQuestions(prev => prev.map(q => selectedIds.has(q.id) ? { ...q, status: 'rejected' as const } : q))
+    setSelectedIds(new Set())
+  }
+
   if (!loaded) return <div className="min-h-screen bg-slate-50 flex items-center justify-center"><Loader2 className="animate-spin text-teal-600" size={24} /></div>
 
   return (
@@ -92,7 +116,14 @@ export default function ReviewPage({ params }: { params: { paperId: string } }) 
               </p>
             </div>
             <div className="flex items-center gap-2">
-              {approvedCount < questions.length && (
+              <button onClick={() => { setBulkMode(!bulkMode); deselectAll() }}
+                className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
+                  bulkMode ? 'bg-teal-600 text-white' : 'border border-slate-200 text-slate-600 hover:bg-slate-50'
+                }`}>
+                {bulkMode ? <CheckSquare size={14} /> : <Square size={14} />}
+                Bulk Select
+              </button>
+              {approvedCount < questions.length && !bulkMode && (
                 <button onClick={handleApproveAll}
                   className="px-4 py-2 border border-emerald-200 text-emerald-700 rounded-lg text-sm font-medium hover:bg-emerald-50 transition-colors">
                   Approve All
@@ -117,19 +148,31 @@ export default function ReviewPage({ params }: { params: { paperId: string } }) 
           {/* Question List Sidebar */}
           <div className="lg:col-span-1">
             <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-slate-200/80 shadow-sm p-3 max-h-[70vh] overflow-y-auto">
+              {bulkMode && (
+                <div className="flex items-center justify-between mb-2 px-1">
+                  <span className="text-xs text-slate-500">{selectedIds.size} selected</span>
+                  <div className="flex gap-1">
+                    <button onClick={selectAll} className="text-xs text-teal-600 hover:underline">All</button>
+                    <span className="text-slate-300">|</span>
+                    <button onClick={deselectAll} className="text-xs text-slate-500 hover:underline">None</button>
+                  </div>
+                </div>
+              )}
               <div className="grid grid-cols-5 gap-1.5">
                 {questions.map((q, i) => (
                   <button
                     key={q.id}
-                    onClick={() => setCurrentIdx(i)}
-                    className={`w-full aspect-square rounded-lg text-xs font-semibold flex items-center justify-center transition-colors ${
-                      i === currentIdx ? 'bg-teal-600 text-white' :
+                    onClick={() => bulkMode ? toggleSelect(q.id) : setCurrentIdx(i)}
+                    className={`w-full aspect-square rounded-lg text-xs font-semibold flex items-center justify-center transition-colors relative ${
+                      !bulkMode && i === currentIdx ? 'bg-teal-600 text-white' :
                       q.status === 'approved' ? 'bg-emerald-100 text-emerald-700' :
                       q.status === 'rejected' ? 'bg-red-100 text-red-700' :
+                      bulkMode && selectedIds.has(q.id) ? 'bg-teal-200 text-teal-800 ring-2 ring-teal-500' :
                       'bg-slate-100 text-slate-600 hover:bg-slate-200'
                     }`}
                   >
                     {i + 1}
+                    {bulkMode && selectedIds.has(q.id) && <Check size={10} className="absolute top-0.5 right-0.5" />}
                   </button>
                 ))}
               </div>
@@ -166,6 +209,20 @@ export default function ReviewPage({ params }: { params: { paperId: string } }) 
             )}
           </div>
         </div>
+
+        {/* Bulk Action Bar */}
+        {bulkMode && selectedIds.size > 0 && (
+          <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-white/95 backdrop-blur-md rounded-2xl border border-slate-200 shadow-xl px-6 py-3 flex items-center gap-4 z-50">
+            <span className="text-sm font-medium text-slate-700">{selectedIds.size} selected</span>
+            <div className="w-px h-6 bg-slate-200" />
+            <button onClick={bulkApprove} className="flex items-center gap-2 px-4 py-2 bg-emerald-500 text-white rounded-lg text-sm font-medium hover:bg-emerald-600 transition-colors">
+              <Check size={14} /> Approve
+            </button>
+            <button onClick={bulkReject} className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-lg text-sm font-medium hover:bg-red-600 transition-colors">
+              <X size={14} /> Reject
+            </button>
+          </div>
+        )}
       </main>
     </div>
   )

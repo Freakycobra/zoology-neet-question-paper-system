@@ -1,8 +1,24 @@
+export type QuestionType = 'mcq' | 'match' | 'assertion_reason' | 'diagram'
+
 export interface Question {
   id: string
+  type: QuestionType
+  // MCQ fields
   stem: string
   options: string[]
   correctAnswer: number
+  // Match-the-following
+  columnA?: string[]
+  columnB?: string[]
+  correctPairs?: [number, number][]
+  // Assertion-Reason
+  assertion?: string
+  reason?: string
+  // Diagram-based
+  diagramDescription?: string
+  labels?: string[]
+  labelOptions?: string[]
+  // Common
   explanation: string
   chapter: string
   subtopic: string

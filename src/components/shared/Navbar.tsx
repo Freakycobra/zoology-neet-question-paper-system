@@ -3,13 +3,14 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Menu, X, LayoutDashboard, FileText, Database, Settings } from 'lucide-react'
+import { Menu, X, LayoutDashboard, FileText, Database, BarChart3 } from 'lucide-react'
 import Logo from './Logo'
 import UserNav from './UserNav'
 
 const teacherNav = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/generate', label: 'Generate Paper', icon: FileText },
+  { href: '/analytics', label: 'Analytics', icon: BarChart3 },
   { href: '/question-bank', label: 'Question Bank', icon: Database },
 ]
 

@@ -32,6 +32,13 @@ export default function QuestionCard({ question, questionNumber, onApprove, onRe
     rejected: 'border-l-4 border-red-500',
   }
 
+  const typeConfig = {
+    mcq: { label: 'MCQ', color: 'bg-blue-100 text-blue-700' },
+    match: { label: 'MATCH', color: 'bg-violet-100 text-violet-700' },
+    assertion_reason: { label: 'A / R', color: 'bg-amber-100 text-amber-700' },
+    diagram: { label: 'DIAGRAM', color: 'bg-emerald-100 text-emerald-700' },
+  }
+
   const handleSaveEdit = () => {
     onEdit(question.id, { stem: editedStem, options: editedOptions })
     setIsEditing(false)
@@ -43,6 +50,9 @@ export default function QuestionCard({ question, questionNumber, onApprove, onRe
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-2 flex-wrap">
           <span className="px-2.5 py-1 rounded-full bg-teal-50 text-teal-700 text-xs font-semibold">Q{questionNumber}</span>
+          <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${typeConfig[question.type].color}`}>
+            {typeConfig[question.type].label}
+          </span>
           <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${diffColors[question.difficulty]}`}>
             {question.difficulty}
           </span>

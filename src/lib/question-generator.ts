@@ -828,6 +828,7 @@ function generateFallbackQuestions(blueprint: PaperBlueprint): Question[] {
             const { template, chapter } = pool[i]
             picked.push({
               id: generateId(),
+              type: 'mcq',
               stem: template.stem,
               options: [...template.options],
               correctAnswer: template.correctAnswer,
@@ -857,6 +858,7 @@ function generateFallbackQuestions(blueprint: PaperBlueprint): Question[] {
             const { template, chapter } = pool[i]
             picked.push({
               id: generateId(),
+              type: 'mcq',
               stem: template.stem,
               options: [...template.options],
               correctAnswer: template.correctAnswer,
@@ -899,6 +901,7 @@ function generateFallbackQuestions(blueprint: PaperBlueprint): Question[] {
       const { template, chapter } = allShuffled[i % allShuffled.length]
       questions.push({
         id: generateId(),
+        type: 'mcq',
         stem: template.stem + ' (Variation)',
         options: [...template.options],
         correctAnswer: template.correctAnswer,
@@ -1058,6 +1061,7 @@ INSTRUCTIONS:
 
       validated.push({
         id: generateId(),
+        type: 'mcq',
         stem: q.stem as string,
         options: q.options as string[],
         correctAnswer: correctAnswer,

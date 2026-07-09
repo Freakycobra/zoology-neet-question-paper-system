@@ -3,18 +3,36 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, ArrowRight, Loader2, FileText } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Loader2, FileText, Target, Zap, BookOpen, LayoutGrid, Sparkles } from 'lucide-react'
 import Navbar from '@/components/shared/Navbar'
 import TopicSelector from '@/components/teacher/TopicSelector'
 import DifficultySlider from '@/components/teacher/DifficultySlider'
 import { getUser, isTeacher } from '@/lib/auth'
 import { Question } from '@/types'
 
-type Step = 1 | 2 | 3 | 4
+type Step = 0 | 1 | 2 | 3 | 4
+
+interface Template {
+  id: string
+  name: string
+  icon: React.ElementType
+  numQuestions: number
+  easy: number
+  medium: number
+  hard: number
+  desc: string
+}
+
+const templates: Template[] = [
+  { id: 'standard', name: 'Standard Weekly', icon: FileText, numQuestions: 25, easy: 20, medium: 50, hard: 30, desc: 'Balanced weekly test' },
+  { id: 'drill', name: 'NEET Drill', icon: Target, numQuestions: 50, easy: 10, medium: 40, hard: 50, desc: 'Full-length practice' },
+  { id: 'quiz', name: 'Quick Quiz', icon: Zap, numQuestions: 10, easy: 40, medium: 40, hard: 20, desc: 'Rapid concept check' },
+  { id: 'revision', name: 'Revision Test', icon: BookOpen, numQuestions: 30, easy: 15, medium: 45, hard: 40, desc: 'Pre-exam revision' },
+]
 
 export default function GeneratePage() {
   const router = useRouter()
-  const [step, setStep] = useState<Step>(1)
+  const [step, setStep] = useState<Step>(0)
   const [classLevel, setClassLevel] = useState<11 | 12>(11)
   const [selectedTopics, setSelectedTopics] = useState<string[]>([])
   const [numQuestions, setNumQuestions] = useState(25)
@@ -79,19 +97,75 @@ export default function GeneratePage() {
 
         {/* Stepper */}
         <div className="flex items-center gap-2 mb-8">
-          {[1, 2, 3, 4].map((s, i) => (
-            <div key={s} className="flex items-center gap-2 flex-1">
+          {['Template', 'Class', 'Topics', 'Config', 'Done'].map((label, i) => (
+            <div key={i} className="flex items-center gap-2 flex-1">
               <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
-                step >= s ? 'bg-teal-600 text-white' : 'bg-slate-200 text-slate-500'
+                step >= i ? 'bg-teal-600 text-white' : 'bg-slate-200 text-slate-500'
               }`}>
-                {step > s ? '✓' : s}
+                {step > i ? '✓' : i}
               </div>
-              {i < 3 && <div className={`flex-1 h-0.5 ${step > s ? 'bg-teal-600' : 'bg-slate-200'}`} />}
+              {i < 4 && <div className={`flex-1 h-0.5 ${step > i ? 'bg-teal-600' : 'bg-slate-200'}`} />}
             </div>
           ))}
         </div>
 
         <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-slate-200/80 p-6 shadow-sm">
+          {step === 0 && (
+            <div className="space-y-6">
+              <h2 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
+                <LayoutGrid size={20} className="text-teal-600" /> Choose a Template
+              </h2>
+              <p className="text-sm text-slate-500">Select a preset or configure manually</p>
+              <div className="grid sm:grid-cols-2 gap-4">
+                {templates.map(t => {
+                  const Icon = t.icon
+                  return (
+                    <button
+                      key={t.id}
+                      onClick={() => {
+                        setNumQuestions(t.numQuestions)
+                        setDifficulty({ easy: t.easy, medium: t.medium, hard: t.hard })
+                        setStep(1)
+                      }}
+                      className="p-5 rounded-xl border-2 border-slate-200 hover:border-teal-400 hover:bg-teal-50/50 transition-all text-left glass hover-lift"
+                    >
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="w-10 h-10 rounded-lg bg-teal-100 text-teal-600 flex items-center justify-center">
+                          <Icon size={20} />
+                        </div>
+                        <div>
+                          <p className="font-semibold text-slate-900">{t.name}</p>
+                          <p className="text-xs text-slate-500">{t.desc}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 mt-3">
+                        <span className="text-xs px-2 py-1 rounded bg-slate-100 text-slate-600">{t.numQuestions} Qs</span>
+                        <div className="flex-1 h-2 rounded-full overflow-hidden flex">
+                          <div className="h-full bg-emerald-400" style={{ width: `${t.easy}%` }} />
+                          <div className="h-full bg-amber-400" style={{ width: `${t.medium}%` }} />
+                          <div className="h-full bg-rose-400" style={{ width: `${t.hard}%` }} />
+                        </div>
+                      </div>
+                    </button>
+                  )
+                })}
+                <button
+                  onClick={() => setStep(1)}
+                  className="p-5 rounded-xl border-2 border-dashed border-slate-300 hover:border-teal-400 hover:bg-teal-50/30 transition-all text-left sm:col-span-2"
+                >
+                  <div className="flex items-center gap-3">
+                    <Sparkles size={20} className="text-slate-400" />
+                    <div>
+                      <p className="font-semibold text-slate-700">Custom Configuration</p>
+                      <p className="text-xs text-slate-500">Manually set question count, difficulty, and all options</p>
+                    </div>
+                    <ArrowRight size={18} className="text-slate-400 ml-auto" />
+                  </div>
+                </button>
+              </div>
+            </div>
+          )}
+
           {step === 1 && (
             <div className="space-y-6">
               <h2 className="text-lg font-semibold text-slate-900">Select Class</h2>
@@ -193,10 +267,10 @@ export default function GeneratePage() {
         </div>
 
         {/* Navigation */}
-        {step < 4 && (
+        {step < 4 && step > 0 && (
           <div className="flex justify-between mt-6">
-            <button onClick={() => setStep(Math.max(1, step - 1) as Step)}
-              disabled={step === 1}
+            <button onClick={() => setStep(Math.max(0, step - 1) as Step)}
+              disabled={step === 0}
               className="px-5 py-2.5 border border-slate-200 rounded-xl text-sm font-medium text-slate-600 hover:bg-white disabled:opacity-30 transition-colors">
               Previous
             </button>
