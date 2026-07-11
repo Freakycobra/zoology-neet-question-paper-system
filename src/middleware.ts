@@ -2,6 +2,11 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 export function middleware(request: NextRequest) {
+  // Skip middleware during static generation/build
+  if (process.env.NODE_ENV === 'production' && !request.headers.get('host')) {
+    return NextResponse.next()
+  }
+
   const authCookie = request.cookies.get('neet-qgen-auth')
   const { pathname } = request.nextUrl
 
@@ -19,7 +24,7 @@ export function middleware(request: NextRequest) {
     const user = JSON.parse(decodeURIComponent(authCookie.value))
 
     // Teacher routes
-    if (pathname.startsWith('/dashboard') || pathname.startsWith('/generate') || pathname.startsWith('/review') || pathname.startsWith('/question-bank') || pathname.startsWith('/export-history')) {
+    if (pathname.startsWith('/dashboard') || pathname.startsWith('/generate') || pathname.startsWith('/review') || pathname.startsWith('/question-bank') || pathname.startsWith('/export-history') || pathname.startsWith('/analytics')) {
       if (user.role !== 'teacher') {
         return NextResponse.redirect(new URL('/student', request.url))
       }
@@ -39,5 +44,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/generate/:path*', '/review/:path*', '/question-bank/:path*', '/export-history/:path*', '/student/:path*', '/settings/:path*'],
+  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
 }
