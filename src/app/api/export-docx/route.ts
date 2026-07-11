@@ -38,8 +38,9 @@ export async function POST(req: NextRequest) {
     }
 
     const arrayBuffer = await blob.arrayBuffer()
+    const uint8 = new Uint8Array(arrayBuffer)
 
-    return new NextResponse(Buffer.from(arrayBuffer), {
+    return new NextResponse(uint8, {
       headers: {
         'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
         'Content-Disposition': `attachment; filename="${filename}"`,

@@ -8,6 +8,7 @@ import Navbar from '@/components/shared/Navbar'
 import QuestionCard from '@/components/teacher/QuestionCard'
 import { getUser, isTeacher } from '@/lib/auth'
 import { Question } from '@/types'
+import { loadQuestions, syncQuestions, getPaperMeta } from '@/lib/paper-storage'
 
 export default function ReviewPage({ params }: { params: { paperId: string } }) {
   const router = useRouter()
@@ -24,28 +25,46 @@ export default function ReviewPage({ params }: { params: { paperId: string } }) 
     if (!user) { router.push('/login'); return }
     if (!isTeacher()) { router.push('/student'); return }
 
-    // CRITICAL FIX: Load questions from sessionStorage (set by generate page)
-    const stored = sessionStorage.getItem(`paper-${paperId}`)
-    if (stored) {
-      setQuestions(JSON.parse(stored))
+    // Load questions from localStorage (persists across sessions)
+    const qs = loadQuestions(paperId)
+    if (qs && qs.length > 0) {
+      setQuestions(qs)
     } else {
-      // No questions found — redirect to generate page
-      router.push('/generate')
-      return
+      // No questions found — check if paper exists in registry
+      const meta = getPaperMeta(paperId)
+      if (meta) {
+        // Paper exists but questions were lost — show message
+        setQuestions([])
+      } else {
+        router.push('/generate')
+        return
+      }
     }
     setLoaded(true)
   }, [paperId, router])
 
   const handleApprove = (id: string) => {
-    setQuestions(prev => prev.map(q => q.id === id ? { ...q, status: 'approved' as const } : q))
+    setQuestions(prev => {
+      const next = prev.map(q => q.id === id ? { ...q, status: 'approved' as const } : q)
+      syncQuestions(paperId, next)
+      return next
+    })
   }
 
   const handleReject = (id: string) => {
-    setQuestions(prev => prev.map(q => q.id === id ? { ...q, status: 'rejected' as const } : q))
+    setQuestions(prev => {
+      const next = prev.map(q => q.id === id ? { ...q, status: 'rejected' as const } : q)
+      syncQuestions(paperId, next)
+      return next
+    })
   }
 
   const handleEdit = (id: string, updates: Partial<Question>) => {
-    setQuestions(prev => prev.map(q => q.id === id ? { ...q, ...updates } : q))
+    setQuestions(prev => {
+      const next = prev.map(q => q.id === id ? { ...q, ...updates } : q)
+      syncQuestions(paperId, next)
+      return next
+    })
   }
 
   const approvedCount = questions.filter(q => q.status === 'approved').length
@@ -73,7 +92,11 @@ export default function ReviewPage({ params }: { params: { paperId: string } }) 
   }
 
   const handleApproveAll = () => {
-    setQuestions(prev => prev.map(q => q.status === 'draft' ? { ...q, status: 'approved' as const } : q))
+    setQuestions(prev => {
+      const next = prev.map(q => q.status === 'draft' ? { ...q, status: 'approved' as const } : q)
+      syncQuestions(paperId, next)
+      return next
+    })
   }
 
   const toggleSelect = (id: string) => {
@@ -89,12 +112,20 @@ export default function ReviewPage({ params }: { params: { paperId: string } }) 
   const deselectAll = () => setSelectedIds(new Set())
 
   const bulkApprove = () => {
-    setQuestions(prev => prev.map(q => selectedIds.has(q.id) ? { ...q, status: 'approved' as const } : q))
+    setQuestions(prev => {
+      const next = prev.map(q => selectedIds.has(q.id) ? { ...q, status: 'approved' as const } : q)
+      syncQuestions(paperId, next)
+      return next
+    })
     setSelectedIds(new Set())
   }
 
   const bulkReject = () => {
-    setQuestions(prev => prev.map(q => selectedIds.has(q.id) ? { ...q, status: 'rejected' as const } : q))
+    setQuestions(prev => {
+      const next = prev.map(q => selectedIds.has(q.id) ? { ...q, status: 'rejected' as const } : q)
+      syncQuestions(paperId, next)
+      return next
+    })
     setSelectedIds(new Set())
   }
 

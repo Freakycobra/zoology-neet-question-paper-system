@@ -9,6 +9,7 @@ import TopicSelector from '@/components/teacher/TopicSelector'
 import DifficultySlider from '@/components/teacher/DifficultySlider'
 import { getUser, isTeacher } from '@/lib/auth'
 import { Question } from '@/types'
+import { registerPaper, saveQuestions, saveBlueprint } from '@/lib/paper-storage'
 
 type Step = 0 | 1 | 2 | 3 | 4
 
@@ -63,9 +64,25 @@ export default function GeneratePage() {
       })
       const data = await res.json()
       if (data.questions) {
-        // CRITICAL FIX: Save questions to sessionStorage so review page can access them
-        sessionStorage.setItem(`paper-${data.paperId}`, JSON.stringify(data.questions))
-        sessionStorage.setItem(`paper-blueprint-${data.paperId}`, JSON.stringify(data.blueprint))
+        // Save to localStorage for persistence across sessions
+        saveQuestions(data.paperId, data.questions)
+        saveBlueprint(data.paperId, data.blueprint)
+
+        // Register paper in the paper registry for dashboard/history
+        const mainTopic = selectedTopics[0]?.split(':')[0] || selectedTopics[0] || 'Mixed Topics'
+        registerPaper({
+          id: data.paperId,
+          title: `${data.blueprint?.testPurpose || 'Test'} — ${mainTopic} (${data.questions.length}Q)`,
+          classLevel,
+          topics: selectedTopics,
+          numQuestions: data.questions.length,
+          difficulty: `${data.metadata?.difficultyMix?.easy || 0}E/${data.metadata?.difficultyMix?.medium || 0}M/${data.metadata?.difficultyMix?.hard || 0}H`,
+          status: 'draft',
+          createdAt: new Date().toISOString(),
+          approvedCount: 0,
+          totalCount: data.questions.length,
+        })
+
         setGeneratedQuestions(data.questions)
         setPaperId(data.paperId)
         setStep(4)
